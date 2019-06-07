@@ -1,0 +1,267 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<style>
+#div1, #div2 {
+  float: left;
+  width: 480px;
+  height: 360px;
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid black;
+}
+  
+section.drag_drop {
+  height: 420px;
+  width: 1080px;
+}
+section.animate {
+  height: 350px;
+  width: 1080px;
+}
+#panel, #flip {
+  padding: 5px;
+  text-align: center;
+  background-color: #e5eecc;
+  border: solid 1px #c3c3c3;
+}
+
+#panel {
+  padding: 50px;
+  display: none;
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/
+jquery.min.js"></script>
+
+<script>
+  //AJAX
+  function loadDoc(method, link) {
+var method = document.getElementById("method").value;
+var link = document.getElementById("link").value;
+var xhttp = new XMLHttpRequest();
+xhttp.onreadystatechange = function() {
+if (this.readyState == 4 && this.status == 200) {
+document.getElementById("demo").innerHTML =
+this.responseText;
+}
+};
+xhttp.open(method, link, true);
+xhttp.send();
+}
+//workers
+var w;
+function startWorker() {
+  if(typeof(Worker) !== "undefined") {
+    if(typeof(w) == "undefined") {
+      w = new Worker("demo_workers.js");
+    }
+    w.onmessage = function(event) {
+      document.getElementById("result").innerHTML = event.data;
+    };
+  } else {
+    document.getElementById("result").innerHTML = "Sorry, your browser does not support Web Workers...";
+  }
+}
+
+function stopWorker() { 
+  w.terminate();
+  w = undefined;
+}
+
+//<!-- Forms Validation -->
+function validateForm() {
+ var x = document.forms["range"]["ff"].value;
+ if (x < 0 || x>500) {
+   alert("Wrong input format! Values in range 0-500.");
+   return false;
+ }
+}
+
+//<!-- Drag 'n Drop -->
+function allowDrop(ev) {
+  ev.preventDefault();
+}
+
+function drag(ev) {
+  ev.dataTransfer.setData("text", ev.target.id);
+}
+
+function drop(ev) {
+  ev.preventDefault();
+  var data = ev.dataTransfer.getData("text");
+  ev.target.appendChild(document.getElementById(data));
+}
+
+//Web Storage
+function clickCounter() {
+  if (typeof(Storage) !== "undefined") {
+    if (localStorage.clickcount) {
+      localStorage.clickcount = Number(localStorage.clickcount)+1;
+    } else {
+      localStorage.clickcount = 1;
+    }
+    document.getElementById("result2").innerHTML = "Clicks: " + localStorage.clickcount;
+  } else {
+    document.getElementById("result2").innerHTML = "Sorry, your browser does not support web storage...";
+  }
+}
+
+//JQuery show/hide
+$(document).ready(function(){
+  $("#hide").click(function(){
+    $("#sh").hide();
+  });
+  $("#show").click(function(){
+    $("#sh").show();
+  });
+});
+  //fade
+  $(document).ready(function(){
+  $("#fade").click(function(){
+    $("#f1").fadeIn();
+    $("#f2").fadeIn("slow");
+    $("#f3").fadeIn(3000);
+  });
+});
+  //slide & stop
+  $(document).ready(function(){
+  $("#flip").click(function(){
+    $("#panel").slideToggle("slow");
+  });
+  $("#stop1").click(function(){
+    $("#panel").stop();
+  });
+});
+  //animate
+  $(document).ready(function(){
+  $("#anim_b").click(function(){
+    var div = $("#anim");
+    div.animate({height: '300px', opacity: '0.4'}, "slow");
+    div.animate({width: '300px', opacity: '0.8'}, "slow");
+    div.animate({height: '100px', opacity: '0.4'}, "slow");
+    div.animate({width: '100px', opacity: '0.8'}, "slow");
+  });
+});
+  //callback
+  $(document).ready(function(){
+  $("#cb").click(function(){
+    $("#cbp").hide("slow", function(){
+    alert("Your info is hidden");
+      });
+  });
+});
+  //chaining
+  $(document).ready(function(){
+  $("#chb").click(function(){
+    $("#chp").css("color", "cyan")
+      .slideUp(1000)
+      .slideDown(1000);
+  });
+});
+</script>
+</head>
+
+<body>
+  <!-- Forms Validation -->
+  <b>Forms Validation</b>
+  
+  <section class ="form_val">
+  <form name="range" action="" onsubmit="return validateForm()" method="post">
+    ID (0-500): <input type="text" name="ff" required>
+    <input type="submit" value="Submit">
+   </form>
+  <br>
+  </section>
+
+  <section class ="myform">
+   <form name ="reg_exp" action="">
+     Password: <input type="password" name="pw" pattern=".{6,}" title="Six or more characters" required>
+     <input type="submit">
+   </form>
+  <br>
+  </section>
+  
+  <section class="forms">
+    <form action="" method="post">
+      Input your name (required): <input type="text" name="fname" required>
+      <input type="submit" value="Submit">
+    </form>
+    <br>
+  </section>
+  
+  <!-- Drag & Drop -->
+  <b>Drag & Drop</b>
+  <section class="drag_drop">
+    <div id="div1" ondrop="drop(event)" ondragover="allowDrop(event)">
+      <img id="drag1" src="https://i.ytimg.com/vi/0LwtmHvn_7E/hqdefault.jpg" draggable="true" ondragstart="drag(event)">
+    </div>
+    
+    <div id="div2" ondrop="drop(event)" ondragover="allowDrop(event)"></div><br>
+  </section>
+  <br>
+  
+  <!-- Web Workers -->
+  <b>Web Workers</b>
+  <p>Count numbers: <output id="result"></output></p>
+  <button onclick="startWorker()">Start Worker</button> 
+  <button onclick="stopWorker()">Stop Worker</button>
+  <br><br>
+  
+  <!-- JSON -->
+  <b>Retrieve JSON contents from json_contents.html</b>
+  <section class="json">
+    <a href="json_contents.html">Retrieve!</a>
+  </section>
+  <br>
+  
+  <!-- Web Storage -->
+  <b>Web Storage</b>
+  <p><button onclick="clickCounter()" type="button">Click me!</button></p>
+  <div id="result2"></div>
+  
+  <!-- AJAX -->
+  <b>AJAX</b>
+  <div id="demo">
+  <h2>The XMLHttpRequest Object</h2>
+  Method: <input type="text" id="method" required><br>
+  Link: <input type="text" id="link" required><br>
+  <button type="button" onclick="loadDoc()">Change Content</button>
+  </div>
+  <br>
+  
+  <!-- JQuery -->
+  <b>JQuery Show/Hide</b>
+  <p id="sh">Click "Hide" button for me to disappear.</p>
+  <button id="hide">Hide</button>
+  <button id="show">Show</button>
+  <br><br>
+  
+  <b>Fade</b>
+  <button id="fade">Click to fade in boxes</button><br><br>
+  <div id="f1" style="width:80px;height:80px;display:none;background-color:aqua;"></div><br>
+  <div id="f2" style="width:80px;height:80px;display:none;background-color:magenta;"></div><br>
+  <div id="f3" style="width:80px;height:80px;display:none;background-color:yellow;"></div>
+  <br><br>
+  
+  <b>Slide & stop()</b>
+  <button id="stop1">STOP!</button><br>
+  <div id="flip">Hello</div>
+  <div id="panel">it's me</div>
+  <br><br>
+  
+  <b>Animate</b>
+  <section class="animate">
+  <button id="anim_b">Start Animation</button><br>
+  <div id="anim" style="background:#98bf21;height:100px;width:100px;position:absolute;"></div><br>
+  </section>
+  
+  <b>Callback</b>
+  <button id="cb">Hide</button>
+  <p id="cbp">This is a paragraph with little content.</p><br>
+  
+  <b>Chaining</b>
+  <p id="chp">Hehehehe</p>
+  <button id="chb">Chain!</button><br>
+</body>
+</html>
